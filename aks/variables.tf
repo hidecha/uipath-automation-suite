@@ -96,6 +96,12 @@ variable "aks_node_size" {
   description = "Enter your AKS Node size"
 }
 
+variable "kubernetes_version" {
+  type        = string
+  description = "Enter the Kubernetes version for AKS"
+  default     = "1.34"
+}
+
 variable "number_of_cpu_nodes" {
   type        = number
   description = "Number of CPU nodes in the AKS default node pool"

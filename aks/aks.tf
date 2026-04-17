@@ -6,7 +6,7 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   location            = azurerm_resource_group.resource_group.location
 
   dns_prefix              = "${var.res_prefix}-dns"
-  kubernetes_version      = "1.33.6"
+  kubernetes_version      = var.kubernetes_version
   sku_tier                = "Free"
   private_cluster_enabled = !var.enable_public_access
 
