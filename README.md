@@ -1,4 +1,4 @@
-# UiPath Automation Suite - Infrastructure as Code
+# Terraform for UiPath Automation Suite
 
 UiPath Automation Suite を AWS (EKS) または Azure (AKS) にデプロイするための Terraform コードです。
 
@@ -228,12 +228,3 @@ kubectl get nodes
 ```bash
 terraform destroy
 ```
-
----
-
-## セキュリティに関する注意事項
-
-- **`terraform.tfvars` をリポジトリにコミットしないでください。** パスワード等の機密情報が含まれます。`.gitignore` で除外済みです。
-- **`input.json` をリポジトリにコミットしないでください。** Automation Suite の設定ファイルには認証情報が含まれます。
-- **`terraform.tfstate` にはすべてのリソース属性がパスワードを含め平文で記録されます。** 本番利用時は S3 + DynamoDB (AWS) や Azure Storage (Azure) によるリモートバックエンドを設定してください。
-- パスワード変数には `sensitive = true` が設定されているため、`plan`/`apply` のコンソール出力にはマスクされて表示されます。
