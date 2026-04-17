@@ -1,0 +1,31 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform plan files
+*.tfplan
+
+# Terraform lock file (optional: include if you want to pin provider versions)
+# .terraform.lock.hcl
+
+# Terraform working directory
+.terraform/
+
+# Variable files with actual values (may contain secrets)
+terraform.tfvars
+*.auto.tfvars
+
+# SSH private keys
+*.pem
+
+# Input files with credentials
+input.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

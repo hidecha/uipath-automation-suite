@@ -1,0 +1,45 @@
+res_prefix = "myaksprefix"
+rg_name    = "myaksprefix-rg"
+tags = {
+  Owner   = "your-email@example.com"
+  Project = "YourProject"
+}
+vnet_address    = "10.1.0.0/16"
+subnet_address  = "10.1.0.0/20"
+my_ip                = "x.x.x.x"
+enable_public_access = false
+aks_internal_lb_ip   = "10.1.0.100"  # Required when enable_public_access = false
+
+# VMs
+vm_username     = "vm_admin"
+vm_password     = "ChangeMe_VmPassword123!"
+client_hostname = "client01"
+
+# SQL Server
+sql_hostname = "myakssql01"
+sql_username = "sql_admin"
+sql_password = "ChangeMe_SqlPassword123!"
+
+# Storage
+storage_account = "myaksstr01"
+
+# Redis
+redis_hostname = "myaksredis01"
+
+# AKS
+aks_fqdn                = "aks.example.com"
+aks_subnet_address      = "10.2.0.0/16"
+aks_dns_ip              = "10.2.0.10"
+aks_node_size           = "Standard_F32s_v2"
+number_of_cpu_nodes     = 3
+number_of_asrobot_nodes = 0
+
+# PostgreSQL
+postgres_hostname       = "myakspg01"
+postgres_username       = "postgres_admin"
+postgres_password       = "ChangeMe_PostgresPassword123!"
+postgres_subnet_address = "10.1.16.0/24"
+postgres_version        = "16"
+postgres_storage_size   = 128
+postgres_sku            = "GP_Standard_D4ds_v5"
+postgres_db_name        = "uipath_taas"
