@@ -38,6 +38,15 @@ resource "azurerm_kubernetes_cluster" "aks_cluster" {
   depends_on = [azurerm_subnet.subnet]
 }
 
+### Role Assignment - Grant AKS Managed Identity "Network Contributor" on VNet
+### Required for LoadBalancer creation on the subnet
+
+resource "azurerm_role_assignment" "aks_network_contributor" {
+  scope                = azurerm_virtual_network.vnet.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
+}
+
 ### Serverless Robot Node Pool
 
 resource "azurerm_kubernetes_cluster_node_pool" "asrobot_pool" {
