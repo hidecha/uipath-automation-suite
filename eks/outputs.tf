@@ -30,6 +30,6 @@ output "postgres_create_db_commands" {
   description = "Run these commands from the client VM to create PostgreSQL databases"
   value = [
     for db in var.postgres_db_name :
-    "PGPASSWORD='<password>' psql -h ${aws_db_instance.postgres_instance.address} -p ${aws_db_instance.postgres_instance.port} -U ${var.postgres_username} -c 'CREATE DATABASE \"${db}\";'"
+    "PGPASSWORD='<password>' psql -h ${aws_db_instance.postgres_instance.address} -p ${aws_db_instance.postgres_instance.port} -U ${var.postgres_username} -d postgres -c 'CREATE DATABASE \"${db}\";'"
   ]
 }
