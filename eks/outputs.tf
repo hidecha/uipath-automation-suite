@@ -25,3 +25,11 @@ output "redis_endpoint" {
 output "private_subnet_ip_ids" {
   value = join(",", local.private_subnet_ids)
 }
+
+output "postgres_create_db_commands" {
+  description = "Run these commands from the client VM to create PostgreSQL databases"
+  value = [
+    for db in var.postgres_db_name :
+    "PGPASSWORD='<password>' psql -h ${aws_db_instance.postgres_instance.address} -p ${aws_db_instance.postgres_instance.port} -U ${var.postgres_username} -c 'CREATE DATABASE \"${db}\";'"
+  ]
+}

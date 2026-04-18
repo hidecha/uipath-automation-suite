@@ -3,7 +3,7 @@
 ## DB Parameter Group
 resource "aws_db_parameter_group" "postgres_pg" {
   name   = "${var.res_prefix}-postgres-pg"
-  family = "postgres16"
+  family = "postgres${split(".", var.postgres_engine_version)[0]}"
 }
 
 ## DB Instance
@@ -41,10 +41,4 @@ resource "aws_db_instance" "postgres_instance" {
   # options
   parameter_group_name       = aws_db_parameter_group.postgres_pg.name
   auto_minor_version_upgrade = false
-}
-
-# PostgreSQL Databases
-resource "postgresql_database" "postgres_db" {
-  for_each = toset(var.postgres_db_name)
-  name     = each.value
 }

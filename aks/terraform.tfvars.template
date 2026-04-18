@@ -32,7 +32,7 @@ aks_subnet_address      = "10.2.0.0/16"
 aks_dns_ip              = "10.2.0.10"
 aks_node_size           = "Standard_F32s_v2"
 kubernetes_version      = "1.34"
-number_of_cpu_nodes     = 3
+number_of_cpu_nodes     = 4
 number_of_asrobot_nodes = 1
 
 # PostgreSQL
