@@ -59,12 +59,3 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
   server_id = azurerm_postgresql_flexible_server.postgres.id
   value     = "btree_gin"
 }
-
-# PostgreSQL Database
-resource "azurerm_postgresql_flexible_server_database" "postgres_db" {
-  for_each  = toset(var.postgres_db_name)
-  name      = each.value
-  server_id = azurerm_postgresql_flexible_server.postgres.id
-  charset   = "UTF8"
-  collation = "en_US.utf8"
-}

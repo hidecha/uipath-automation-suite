@@ -35,4 +35,3 @@ postgres_username       = "postgres_admin"
 postgres_password       = "ChangeMe_PostgresPassword123!"
 postgres_storage_size   = 128
 postgres_max_storage    = 500
-postgres_db_name        = ["automationsuite_taas", "automationsuite_a4d"]

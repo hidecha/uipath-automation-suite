@@ -43,4 +43,3 @@ postgres_subnet_address = "10.1.16.0/24"
 postgres_version        = "18"
 postgres_storage_size   = 128
 postgres_sku            = "GP_Standard_D4ds_v5"
-postgres_db_name        = ["automationsuite_taas", "automationsuite_a4d"]

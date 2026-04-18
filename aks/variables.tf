@@ -160,12 +160,6 @@ variable "postgres_sku" {
   default     = "GP_Standard_D4ds_v5"
 }
 
-variable "postgres_db_name" {
-  type        = list(string)
-  description = "Enter the database names for PostgreSQL"
-  default     = ["automationsuite_taas", "automationsuite_a4d"]
-}
-
 variable "postgres_subnet_address" {
   type        = string
   description = "Enter the subnet address space for PostgreSQL delegated subnet"

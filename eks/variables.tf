@@ -151,9 +151,3 @@ variable "postgres_max_storage" {
   description = "Enter the PostgreSQL max storage size in GB"
   default     = 500
 }
-
-variable "postgres_db_name" {
-  type        = list(string)
-  description = "Enter the database names for PostgreSQL"
-  default     = ["automationsuite_taas", "automationsuite_a4d"]
-}
