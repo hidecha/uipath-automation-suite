@@ -20,7 +20,7 @@ redis_password = "ChangeMe_RedisPassword123!"
 # EKS
 eks_fqdn              = "as.example.com"
 cpu_instance_type     = "c7a.8xlarge"
-number_of_cpu_nodes   = 3
+number_of_cpu_nodes   = 4
 asrobot_instance_type = "c7a.4xlarge"
 number_of_asrobot_nodes = 1
 gpu_instance_type     = "g4dn.xlarge"
@@ -33,6 +33,6 @@ postgres_instance_type  = "db.m6i.xlarge"
 postgres_engine_version = "16.8"
 postgres_username       = "postgres_admin"
 postgres_password       = "ChangeMe_PostgresPassword123!"
-postgres_storage_size   = 100
+postgres_storage_size   = 128
 postgres_max_storage    = 500
 postgres_db_name        = "uipath_taas"
