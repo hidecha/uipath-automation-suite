@@ -163,7 +163,7 @@ variable "postgres_sku" {
 variable "postgres_db_name" {
   type        = list(string)
   description = "Enter the database names for PostgreSQL"
-  default     = ["AutomationSuite_Taas", "AutomationSuite_A4D"]
+  default     = ["automationsuite_taas", "automationsuite_a4d"]
 }
 
 variable "postgres_subnet_address" {
