@@ -30,9 +30,9 @@ s3_bucket_name        = "myeksprefix-*"
 
 # PostgreSQL
 postgres_instance_type  = "db.m6i.xlarge"
-postgres_engine_version = "16.8"
+postgres_engine_version = "18.3"
 postgres_username       = "postgres_admin"
 postgres_password       = "ChangeMe_PostgresPassword123!"
 postgres_storage_size   = 128
 postgres_max_storage    = 500
-postgres_db_name        = "uipath_taas"
+postgres_db_name        = ["AutomationSuite_Taas", "AutomationSuite_A4D"]

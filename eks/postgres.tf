@@ -15,7 +15,6 @@ resource "aws_db_instance" "postgres_instance" {
   multi_az       = false
   username       = var.postgres_username
   password       = var.postgres_password
-  db_name        = var.postgres_db_name
 
   # storage
   storage_type          = "gp3"
@@ -42,4 +41,10 @@ resource "aws_db_instance" "postgres_instance" {
   # options
   parameter_group_name       = aws_db_parameter_group.postgres_pg.name
   auto_minor_version_upgrade = false
+}
+
+# PostgreSQL Databases
+resource "postgresql_database" "postgres_db" {
+  for_each = toset(var.postgres_db_name)
+  name     = each.value
 }

@@ -153,7 +153,7 @@ variable "postgres_max_storage" {
 }
 
 variable "postgres_db_name" {
-  type        = string
-  description = "Enter the default database name for PostgreSQL"
-  default     = "uipath_taas"
+  type        = list(string)
+  description = "Enter the database names for PostgreSQL"
+  default     = ["AutomationSuite_Taas", "AutomationSuite_A4D"]
 }

@@ -161,9 +161,9 @@ variable "postgres_sku" {
 }
 
 variable "postgres_db_name" {
-  type        = string
-  description = "Enter the default database name for PostgreSQL"
-  default     = "uipath_taas"
+  type        = list(string)
+  description = "Enter the database names for PostgreSQL"
+  default     = ["AutomationSuite_Taas", "AutomationSuite_A4D"]
 }
 
 variable "postgres_subnet_address" {

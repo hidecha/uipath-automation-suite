@@ -62,7 +62,8 @@ resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
 
 # PostgreSQL Database
 resource "azurerm_postgresql_flexible_server_database" "postgres_db" {
-  name      = var.postgres_db_name
+  for_each  = toset(var.postgres_db_name)
+  name      = each.value
   server_id = azurerm_postgresql_flexible_server.postgres.id
   charset   = "UTF8"
   collation = "en_US.utf8"
