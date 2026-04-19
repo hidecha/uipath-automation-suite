@@ -117,59 +117,45 @@ resource "aws_iam_role_policy" "iam_policy_workernode_ebs" {
   })
 }
 
-resource "aws_iam_role_policy" "iam_policy_workernode_efs" {
-  name = "EFS_CSI_Driver"
-  role = aws_iam_role.iam_role_workernode.name
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "ec2:DescribeAvailabilityZones"
-        ],
-        "Resource" : "*"
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "elasticfilesystem:DescribeAccessPoints",
-          "elasticfilesystem:DescribeFileSystems",
-          "elasticfilesystem:DescribeMountTargets"
-        ],
-        "Resource" : "arn:aws:elasticfilesystem:${var.region}:${data.aws_caller_identity.current.account_id}:file-system/*"
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "elasticfilesystem:DescribeAccessPoints"
-        ],
-        "Resource" : "arn:aws:elasticfilesystem:${var.region}:${data.aws_caller_identity.current.account_id}:access-point/*"
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "elasticfilesystem:CreateAccessPoint"
-        ],
-        "Resource" : "arn:aws:elasticfilesystem:${var.region}:${data.aws_caller_identity.current.account_id}:file-system/*",
-        "Condition" : {
-          "StringLike" : {
-            "aws:RequestTag/efs.csi.aws.com/cluster" : "true"
-          }
-        }
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : "elasticfilesystem:DeleteAccessPoint",
-        "Resource" : "arn:aws:elasticfilesystem:${var.region}:${data.aws_caller_identity.current.account_id}:access-point/*",
-        "Condition" : {
-          "StringEquals" : {
-            "aws:ResourceTag/efs.csi.aws.com/cluster" : "true"
-          }
+## IRSA Role for EFS CSI Driver (separated from the worker node role
+## to prevent accidental trust-policy overwrites.)
+data "tls_certificate" "eks_oidc" {
+  url = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  url             = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
+}
+
+locals {
+  oidc_host = replace(aws_iam_openid_connect_provider.eks.url, "https://", "")
+}
+
+resource "aws_iam_role" "iam_role_efs_csi" {
+  name = "${var.res_prefix}-efs-csi-driver-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringLike = {
+          "${local.oidc_host}:sub" = "system:serviceaccount:kube-system:efs-csi-*"
+          "${local.oidc_host}:aud" = "sts.amazonaws.com"
         }
       }
-    ]
+    }]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "iam_role_efs_csi_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
+  role       = aws_iam_role.iam_role_efs_csi.name
 }
 
 resource "aws_iam_role_policy" "iam_policy_workernode_elb" {
@@ -313,8 +299,11 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = var.kubernetes_version
 
   vpc_config {
-    subnet_ids         = var.enable_public_access ? local.public_subnet_ids : local.private_subnet_ids
-    security_group_ids = [aws_security_group.sg_internal.id]
+    subnet_ids              = var.enable_public_access ? local.public_subnet_ids : local.private_subnet_ids
+    security_group_ids      = [aws_security_group.sg_internal.id]
+    endpoint_private_access = true
+    endpoint_public_access  = var.enable_public_access
+    public_access_cidrs     = var.enable_public_access ? ["${var.my_ip}/32"] : null
   }
 
   depends_on = [
@@ -322,16 +311,33 @@ resource "aws_eks_cluster" "eks_cluster" {
   ]
 }
 
-## Add-On
+## Add-On (bundled with the cluster; versions pinned to avoid unplanned drift.)
 resource "aws_eks_addon" "eks_addons" {
-  for_each = toset(["vpc-cni", "coredns", "kube-proxy", "aws-ebs-csi-driver", "aws-efs-csi-driver"])
+  for_each = toset(["vpc-cni", "coredns", "kube-proxy", "aws-ebs-csi-driver"])
 
-  cluster_name = aws_eks_cluster.eks_cluster.name
-  addon_name   = each.key
+  cluster_name                = aws_eks_cluster.eks_cluster.name
+  addon_name                  = each.key
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
 
   depends_on = [
     aws_eks_cluster.eks_cluster,
     aws_eks_node_group.eks_nodegroup_cpu
+  ]
+}
+
+## EFS CSI driver addon is linked to the dedicated IRSA role above.
+resource "aws_eks_addon" "efs_csi" {
+  cluster_name                = aws_eks_cluster.eks_cluster.name
+  addon_name                  = "aws-efs-csi-driver"
+  service_account_role_arn    = aws_iam_role.iam_role_efs_csi.arn
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  depends_on = [
+    aws_eks_cluster.eks_cluster,
+    aws_eks_node_group.eks_nodegroup_cpu,
+    aws_iam_role_policy_attachment.iam_role_efs_csi_policy
   ]
 }
 
