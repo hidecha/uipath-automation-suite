@@ -158,6 +158,32 @@ resource "aws_iam_role_policy_attachment" "iam_role_efs_csi_policy" {
   role       = aws_iam_role.iam_role_efs_csi.name
 }
 
+## IRSA Role for EBS CSI Driver
+resource "aws_iam_role" "iam_role_ebs_csi" {
+  name = "${var.res_prefix}-ebs-csi-driver-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${local.oidc_host}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          "${local.oidc_host}:aud" = "sts.amazonaws.com"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "iam_role_ebs_csi_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.iam_role_ebs_csi.name
+}
+
 resource "aws_iam_role_policy" "iam_policy_workernode_elb" {
   name = "ELB_Permissions"
   role = aws_iam_role.iam_role_workernode.name
@@ -313,7 +339,7 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 ## Add-On (bundled with the cluster; versions pinned to avoid unplanned drift.)
 resource "aws_eks_addon" "eks_addons" {
-  for_each = toset(["vpc-cni", "coredns", "kube-proxy", "aws-ebs-csi-driver"])
+  for_each = toset(["vpc-cni", "coredns", "kube-proxy"])
 
   cluster_name                = aws_eks_cluster.eks_cluster.name
   addon_name                  = each.key
@@ -326,7 +352,22 @@ resource "aws_eks_addon" "eks_addons" {
   ]
 }
 
-## EFS CSI driver addon is linked to the dedicated IRSA role above.
+## EBS CSI driver addon with its dedicated IRSA role.
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name                = aws_eks_cluster.eks_cluster.name
+  addon_name                  = "aws-ebs-csi-driver"
+  service_account_role_arn    = aws_iam_role.iam_role_ebs_csi.arn
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  depends_on = [
+    aws_eks_cluster.eks_cluster,
+    aws_eks_node_group.eks_nodegroup_cpu,
+    aws_iam_role_policy_attachment.iam_role_ebs_csi_policy
+  ]
+}
+
+## EFS CSI driver addon with its dedicated IRSA role.
 resource "aws_eks_addon" "efs_csi" {
   cluster_name                = aws_eks_cluster.eks_cluster.name
   addon_name                  = "aws-efs-csi-driver"
