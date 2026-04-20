@@ -25,7 +25,3 @@ output "redis_endpoint" {
 output "private_subnet_ip_ids" {
   value = join(",", local.private_subnet_ids)
 }
-
-output "efs_file_system_id" {
-  value = aws_efs_file_system.efs_file.id
-}
