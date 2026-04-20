@@ -339,12 +339,36 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 ## Add-On (bundled with the cluster; versions pinned to avoid unplanned drift.)
 resource "aws_eks_addon" "eks_addons" {
-  for_each = toset(["vpc-cni", "coredns", "kube-proxy"])
+  for_each = toset(["coredns", "kube-proxy"])
 
   cluster_name                = aws_eks_cluster.eks_cluster.name
   addon_name                  = each.key
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "PRESERVE"
+
+  depends_on = [
+    aws_eks_cluster.eks_cluster,
+    aws_eks_node_group.eks_nodegroup_cpu
+  ]
+}
+
+## VPC CNI addon — uses WARM_IP_TARGET instead of WARM_ENI_TARGET to prevent
+## IP address exhaustion in /24 node subnets.  Custom networking routes Pod
+## secondary IPs to the dedicated Pod subnets (100.64.x.x/18).
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name                = aws_eks_cluster.eks_cluster.name
+  addon_name                  = "vpc-cni"
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  configuration_values = jsonencode({
+    env = {
+      AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG = "true"
+      ENI_CONFIG_LABEL_DEF               = "topology.kubernetes.io/zone"
+      WARM_IP_TARGET                     = "5"
+      MINIMUM_IP_TARGET                  = "3"
+    }
+  })
 
   depends_on = [
     aws_eks_cluster.eks_cluster,

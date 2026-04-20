@@ -25,3 +25,10 @@ output "redis_endpoint" {
 output "private_subnet_ip_ids" {
   value = join(",", local.private_subnet_ids)
 }
+
+output "pod_subnet_ids" {
+  description = "Pod subnet IDs (one per AZ) for ENIConfig creation"
+  value = {
+    for i, az in var.availability_zones : az => aws_subnet.subnet_pod[i].id
+  }
+}

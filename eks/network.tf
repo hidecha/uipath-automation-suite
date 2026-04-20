@@ -25,7 +25,7 @@ resource "aws_subnet" "subnet_public" {
   }
 }
 
-## Private Subnets
+## Private Subnets (node ENIs — primary IPs, control-plane traffic)
 resource "aws_subnet" "subnet_private" {
   count = length(var.availability_zones)
 
@@ -39,9 +39,35 @@ resource "aws_subnet" "subnet_private" {
   }
 }
 
+## Secondary CIDR for Pod networking.
+## /24 node subnets only hold 254 IPs — a single c7a.8xlarge can consume up
+## to 240 secondary IPs, so Automation Suite (200+ Pods) quickly exhausts the
+## address space.  A dedicated Pod CIDR with large /18 subnets eliminates this.
+resource "aws_vpc_ipv4_cidr_block_association" "pod_cidr" {
+  vpc_id     = aws_vpc.vpc.id
+  cidr_block = var.pod_cidr
+}
+
+## Pod Subnets (one per AZ, carved from the secondary CIDR)
+resource "aws_subnet" "subnet_pod" {
+  count = length(var.availability_zones)
+
+  vpc_id                  = aws_vpc_ipv4_cidr_block_association.pod_cidr.vpc_id
+  availability_zone       = var.availability_zones[count.index]
+  cidr_block              = cidrsubnet(var.pod_cidr, var.pod_subnet_newbits, count.index)
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.res_prefix}-subnet-pod${format("%02d", count.index + 1)}"
+  }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.pod_cidr]
+}
+
 locals {
   public_subnet_ids  = aws_subnet.subnet_public[*].id
   private_subnet_ids = aws_subnet.subnet_private[*].id
+  pod_subnet_ids     = aws_subnet.subnet_pod[*].id
 }
 
 ## Internet Gateway
@@ -128,6 +154,14 @@ resource "aws_route_table_association" "rt_private_assoc" {
   route_table_id = aws_route_table.rt_private[count.index].id
 }
 
+## Route Tables to Pod Subnets association (same NAT GW as private subnets)
+resource "aws_route_table_association" "rt_pod_assoc" {
+  count = length(var.availability_zones)
+
+  subnet_id      = aws_subnet.subnet_pod[count.index].id
+  route_table_id = aws_route_table.rt_private[count.index].id
+}
+
 ### Network Security Group
 
 ## Security Group for Bastion
@@ -163,7 +197,7 @@ resource "aws_security_group" "sg_internal" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.vpc_address]
+    cidr_blocks = [var.vpc_address, var.pod_cidr]
   }
 
   # HTTPS ingress for the NLB-fronted Automation Suite gateway. Restricted to
@@ -202,7 +236,7 @@ resource "aws_security_group" "sg_vpce" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_address]
+    cidr_blocks = [var.vpc_address, var.pod_cidr]
   }
 
   egress {
@@ -246,6 +280,8 @@ resource "aws_vpc_endpoint" "interface" {
   tags = {
     Name = "${var.res_prefix}-vpce-${each.key}"
   }
+
+  depends_on = [aws_vpc_ipv4_cidr_block_association.pod_cidr]
 }
 
 resource "aws_vpc_endpoint" "s3" {

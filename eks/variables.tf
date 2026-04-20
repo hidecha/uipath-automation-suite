@@ -25,6 +25,18 @@ variable "vpc_address" {
   description = "Enter your VPC address space"
 }
 
+variable "pod_cidr" {
+  type        = string
+  description = "Secondary CIDR for Pod IP addresses (RFC6598 100.64.0.0/16 recommended). Each AZ gets a /18 subnet carved from this range."
+  default     = "100.64.0.0/16"
+}
+
+variable "pod_subnet_newbits" {
+  type        = number
+  description = "Bits to add to pod_cidr for per-AZ subnets (2 bits on a /16 = /18 = 16382 IPs)"
+  default     = 2
+}
+
 variable "my_ip" {
   type        = string
   description = "Enter your global IP address"
