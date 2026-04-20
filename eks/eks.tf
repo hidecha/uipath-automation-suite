@@ -376,28 +376,6 @@ resource "aws_eks_addon" "vpc_cni" {
   ]
 }
 
-## ENIConfig per AZ — tells VPC CNI which Pod subnet to use for secondary IPs.
-resource "kubectl_manifest" "eniconfig" {
-  for_each = { for i, az in var.availability_zones : az => aws_subnet.subnet_pod[i].id }
-
-  yaml_body = yamlencode({
-    apiVersion = "crd.k8s.amazonaws.com/v1alpha1"
-    kind       = "ENIConfig"
-    metadata = {
-      name = each.key
-    }
-    spec = {
-      securityGroups = [aws_eks_cluster.eks_cluster.vpc_config[0].cluster_security_group_id]
-      subnet         = each.value
-    }
-  })
-
-  depends_on = [
-    aws_eks_addon.vpc_cni,
-    aws_eks_node_group.eks_nodegroup_cpu
-  ]
-}
-
 ## EBS CSI driver addon with its dedicated IRSA role.
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name                = aws_eks_cluster.eks_cluster.name
