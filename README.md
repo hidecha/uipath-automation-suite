@@ -36,7 +36,6 @@ UiPath Automation Suite を AWS (EKS) または Azure (AKS) にデプロイす�
 │   ├── postgres.tf               # Azure Database for PostgreSQL
 │   ├── redis.tf                  # Azure Cache for Redis
 │   ├── storage.tf                # Storage Account / Queues / Blob
-│   ├── backup.tf                 # AKS Backup Vault / Policy / Instance
 │   ├── outputs.tf                # 出力値
 │   └── terraform.tfvars.template # パラメータテンプレート
 │
@@ -63,7 +62,6 @@ UiPath Automation Suite を AWS (EKS) または Azure (AKS) にデプロイす�
 | Redis | ElastiCache Redis | Azure Cache for Redis |
 | ストレージ | EFS + SQS | Storage Account + Queue + Blob |
 | DNS | Route 53 Private Hosted Zone | Private DNS Zone |
-| バックアップ | - | Backup Vault + Policy + Instance |
 
 ---
 
@@ -199,7 +197,6 @@ cp terraform.tfvars.template terraform.tfvars
 | `postgres_version` | PostgreSQL エンジンバージョン | `16` |
 | `postgres_storage_size` | PostgreSQL ストレージサイズ (GB) | `128` |
 | `postgres_sku` | PostgreSQL SKU 名 | `GP_Standard_D4ds_v5` |
-| `backup_storage_account` | バックアップ用 Storage Account 名 (グローバル一意) | `myaksbkstr01` |
 
 ### 2. 初期化
 

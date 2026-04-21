@@ -158,8 +158,3 @@ variable "postgres_subnet_address" {
   type        = string
   description = "Enter the subnet address space for PostgreSQL delegated subnet"
 }
-
-variable "backup_storage_account" {
-  type        = string
-  description = "Enter a name of Storage Account for AKS Backup"
-}
