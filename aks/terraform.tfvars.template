@@ -8,7 +8,6 @@ vnet_address    = "10.1.0.0/16"
 subnet_address  = "10.1.0.0/20"
 my_ip                = "x.x.x.x"
 enable_public_access = false
-aks_internal_lb_ip   = "10.1.0.100"  # Required when enable_public_access = false
 
 # VMs
 vm_username     = "vm_admin"
@@ -43,3 +42,6 @@ postgres_subnet_address = "10.1.16.0/24"
 postgres_version        = "18"
 postgres_storage_size   = 128
 postgres_sku            = "GP_Standard_D4ds_v5"
+
+# AKS Backup
+backup_storage_account = "myaksbkstr01"

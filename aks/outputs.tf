@@ -22,6 +22,3 @@ output "AKS_public_ip_address" {
   value = var.enable_public_access ? data.azurerm_public_ip.aks_public_ip[0].ip_address : null
 }
 
-output "AKS_internal_lb_ip" {
-  value = var.enable_public_access ? null : var.aks_internal_lb_ip
-}

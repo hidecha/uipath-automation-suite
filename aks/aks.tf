@@ -87,14 +87,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "as_vnet_link" {
   virtual_network_id    = azurerm_virtual_network.vnet.id
 }
 
-resource "azurerm_private_dns_a_record" "as_dns_a_record" {
-  name                = "@"
-  zone_name           = azurerm_private_dns_zone.as_zone.name
-  resource_group_name = azurerm_resource_group.resource_group.name
-  ttl                 = 3600
-  records             = var.enable_public_access ? [data.azurerm_public_ip.aks_public_ip[0].ip_address] : [var.aks_internal_lb_ip]
-}
-
 resource "azurerm_private_dns_cname_record" "as_dns_cname_record" {
   for_each = toset(["alm", "monitoring", "objectstore", "registry", "insights", "apps"])
 

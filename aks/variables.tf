@@ -120,12 +120,6 @@ variable "enable_public_access" {
   default     = false
 }
 
-variable "aks_internal_lb_ip" {
-  type        = string
-  description = "Static private IP address for AKS Internal Load Balancer (required when enable_public_access = false)"
-  default     = ""
-}
-
 variable "postgres_hostname" {
   type        = string
   description = "Enter a hostname of Azure Database for PostgreSQL Flexible Server"
@@ -163,4 +157,9 @@ variable "postgres_sku" {
 variable "postgres_subnet_address" {
   type        = string
   description = "Enter the subnet address space for PostgreSQL delegated subnet"
+}
+
+variable "backup_storage_account" {
+  type        = string
+  description = "Enter a name of Storage Account for AKS Backup"
 }
